@@ -1,0 +1,5 @@
+name: DreamCommand
+version: 1.0.0-SNAPSHOT
+main: com.dreamfirestudios.dreamCommand.DreamCommand
+api-version: 1.21
+depend: [DreamCore]
