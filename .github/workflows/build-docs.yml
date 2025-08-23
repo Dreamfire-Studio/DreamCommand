@@ -1,0 +1,137 @@
+name: Build & Publish Docs (site only)
+
+on:
+  push:
+    branches: ["**"]
+  workflow_dispatch: {}
+
+concurrency:
+  group: docs-${{ github.repository }}-${{ github.ref_name }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    env:
+      REPO_SLUG:       ${{ github.repository }}                # owner/repo
+      BRANCH_NAME:     ${{ github.ref_name }}
+      DEFAULT_BRANCH:  ${{ github.event.repository.default_branch }}
+      REMOTE_BASE:     /srv/app/wiki                           # served by Nginx at /docs/
+      DOCS_BASE_URL:   ${{ secrets.DOCS_BASE_URL || 'http://89.117.36.132/docs' }}
+
+      SSH_HOST:        ${{ secrets.VPS_HOST }}
+      SSH_USER:        ${{ secrets.VPS_USER }}
+      SSH_PORT:        ${{ secrets.VPS_PORT || '22' }}
+      KEY_B64:         ${{ secrets.VPS_SSH_KEY_B64 }}          # base64 of *private* OpenSSH key (no passphrase)
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+
+      - name: Validate secrets
+        shell: bash
+        run: |
+          set -e
+          for v in SSH_HOST SSH_USER KEY_B64; do
+            [ -n "${!v}" ] || { echo "::error::$v is missing"; exit 1; }
+          done
+
+      - name: Install toolchain
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y doxygen graphviz rsync openssh-client
+
+      - name: Prepare docs output
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p docs/_doxygen/html
+
+      - name: Build docs (Doxygen)
+        shell: bash
+        run: |
+          set -euo pipefail
+          [ -f Doxyfile ] || { echo "::error title=Doxyfile missing::Add a Doxyfile at repo root."; exit 1; }
+          doxygen -u Doxyfile || true
+          sed -i '/^CLASS_DIAGRAMS[[:space:]]*=/d' Doxyfile || true
+          if grep -q '^OUTPUT_DIRECTORY' Doxyfile; then
+            sed -i 's|^OUTPUT_DIRECTORY[[:space:]]*=.*|OUTPUT_DIRECTORY = ./docs/_doxygen|' Doxyfile
+          else
+            printf '\nOUTPUT_DIRECTORY = ./docs/_doxygen\n' >> Doxyfile
+          fi
+          OUT="./docs/_doxygen"
+          if ! install -d "$OUT/html"; then
+            OUT="$RUNNER_TEMP/doxygen_out"
+            install -d "$OUT/html"
+            cp Doxyfile Doxyfile.effective
+            sed -i "s|^OUTPUT_DIRECTORY[[:space:]]*=.*|OUTPUT_DIRECTORY = $OUT|" Doxyfile.effective
+            CFG="Doxyfile.effective"
+          else
+            CFG="Doxyfile"
+          fi
+          echo ">>> running doxygen to $OUT"
+          doxygen "$CFG"
+          if [ "$OUT" != "./docs/_doxygen" ]; then
+            mkdir -p ./docs/_doxygen
+            rsync -a "$OUT/" ./docs/_doxygen/
+          fi
+          test -f ./docs/_doxygen/html/index.html || { echo "::error::docs/_doxygen/html/index.html not created"; exit 1; }
+
+      - name: Prepare SSH (decode base64 key)
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          echo "$KEY_B64" | base64 -d > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keygen -y -f ~/.ssh/id_ed25519 >/dev/null 2>&1 || { echo "::error::decoded key invalid"; exit 1; }
+          ssh-keyscan -p "${SSH_PORT}" "${SSH_HOST}" >> ~/.ssh/known_hosts 2>/dev/null || true
+          chmod 644 ~/.ssh/known_hosts
+          ssh -o BatchMode=yes -o IdentitiesOnly=yes -p "${SSH_PORT}" -i ~/.ssh/id_ed25519 "${SSH_USER}@${SSH_HOST}" echo ok
+
+      - name: Deploy docs to VPS (atomic)
+        shell: bash
+        run: |
+          set -euo pipefail
+          SRC="docs/_doxygen/html/"
+          TARGET="${REMOTE_BASE}/${REPO_SLUG}/${BRANCH_NAME}"
+          ssh -p "${SSH_PORT}" -i ~/.ssh/id_ed25519 "${SSH_USER}@${SSH_HOST}" "mkdir -p '${TARGET}.tmp'"
+          rsync -az --delete -e "ssh -p ${SSH_PORT} -i ~/.ssh/id_ed25519" "$SRC" "${SSH_USER}@${SSH_HOST}":"${TARGET}.tmp/"
+          ssh -p "${SSH_PORT}" -i ~/.ssh/id_ed25519 "${SSH_USER}@${SSH_HOST}" \
+            "rm -rf '${TARGET}.bak' && mv '${TARGET}' '${TARGET}.bak' 2>/dev/null || true && mv '${TARGET}.tmp' '${TARGET}' && rm -rf '${TARGET}.bak'"
+
+      - name: Update branch index + latest symlink (on server)
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -p "${SSH_PORT}" -i ~/.ssh/id_ed25519 "${SSH_USER}@${SSH_HOST}" bash -lc "
+            BASE='${REMOTE_BASE}/${REPO_SLUG}'; REPO_SLUG='${REPO_SLUG}'; BRANCH='${BRANCH_NAME}'; DEFAULT='${DEFAULT_BRANCH}';
+            mkdir -p \"\$BASE\";
+            TMP=\$(mktemp);
+            {
+              echo '<!doctype html><meta charset=\"utf-8\"><title>'\"\$REPO_SLUG\"' branches</title>';
+              echo '<h1>'\"\$REPO_SLUG\"' — Branches</h1><ul>';
+              for d in \"\$BASE\"/*/; do
+                b=\$(basename \"\$d\");
+                [ \"\$b\" = \"latest\" ] && continue;
+                echo \"<li><a href=\\\"\$b/\\\">\$b</a></li>\";
+              done
+              echo '</ul>';
+            } > \"\$TMP\";
+            mv \"\$TMP\" \"\$BASE/index.html\";
+            if [ \"\$BRANCH\" = \"\$DEFAULT\" ]; then ln -sfn \"\$BRANCH\" \"\$BASE/latest\"; fi
+          "
+
+      - name: Emit public URL
+        shell: bash
+        run: |
+          echo "Branch docs: ${DOCS_BASE_URL}/${REPO_SLUG}/${BRANCH_NAME}/index.html"
+          echo "Repo index : ${DOCS_BASE_URL}/${REPO_SLUG}/"
+          if [ "${BRANCH_NAME}" = "${DEFAULT_BRANCH}" ]; then
+            echo "Latest     : ${DOCS_BASE_URL}/${REPO_SLUG}/latest/"
+          fi
