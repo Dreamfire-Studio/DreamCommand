@@ -23,10 +23,22 @@
  */
 package com.dreamfirestudios.dreamcommand.Annotations;
 
-
 import java.lang.annotation.*;
 
-
+/// <summary>
+/// Declares a command method within the DreamCommand framework.
+/// </summary>
+/// <remarks>
+/// This annotation defines one or more command aliases and an optional description.
+/// </remarks>
+/// <param name="value">Array of command aliases (e.g. {"fly", "f"}).</param>
+/// <param name="description">Optional description for documentation/help menus.</param>
+/// <example>
+/// <code>
+/// @PCMethod(value = {"fly", "f"}, description = "Toggles flight mode.")
+/// public void flyCommand(Player player) { ... }
+/// </code>
+/// </example>
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface PCMethod {

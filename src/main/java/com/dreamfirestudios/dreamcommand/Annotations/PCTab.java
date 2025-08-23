@@ -26,7 +26,20 @@ package com.dreamfirestudios.dreamcommand.Annotations;
 import com.dreamfirestudios.dreamcommand.Enums.TabType;
 import java.lang.annotation.*;
 
-
+/// <summary>
+/// Declares a tab completion entry for a command method.
+/// </summary>
+/// <remarks>
+/// Supports position indexing, type of tab completion, and optional extra data.
+/// </remarks>
+/// <param name="pos">The argument index for tab completion.</param>
+/// <param name="type">The type of tab (see <see cref="TabType"/>).</param>
+/// <param name="data">Optional extra data for this tab entry.</param>
+/// <example>
+/// <code>
+/// @PCTab(pos = 1, type = TabType.PLAYER_NAME)
+/// </code>
+/// </example>
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Repeatable(PCTabs.class)

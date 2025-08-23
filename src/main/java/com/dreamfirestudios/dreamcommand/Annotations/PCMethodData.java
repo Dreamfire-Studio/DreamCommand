@@ -23,10 +23,14 @@
  */
 package com.dreamfirestudios.dreamcommand.Annotations;
 
-
 import java.lang.annotation.*;
 
-
+/// <summary>
+/// Marks a method as containing additional command data or metadata.
+/// </summary>
+/// <remarks>
+/// This is typically used by internal frameworks for supplemental processing.
+/// </remarks>
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface PCMethodData { }

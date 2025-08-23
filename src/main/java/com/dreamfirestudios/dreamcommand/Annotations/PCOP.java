@@ -23,10 +23,14 @@
  */
 package com.dreamfirestudios.dreamcommand.Annotations;
 
-
 import java.lang.annotation.*;
 
-
+/// <summary>
+/// Marks a method or type as requiring operator-level access.
+/// </summary>
+/// <remarks>
+/// This ensures only server operators can invoke the associated command.
+/// </remarks>
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface PCOP { }

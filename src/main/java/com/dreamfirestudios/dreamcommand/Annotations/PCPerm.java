@@ -23,10 +23,20 @@
  */
 package com.dreamfirestudios.dreamcommand.Annotations;
 
-
 import java.lang.annotation.*;
 
-
+/// <summary>
+/// Declares permission requirements for a method or type.
+/// </summary>
+/// <remarks>
+/// Can be applied multiple times to define different permission strings.
+/// </remarks>
+/// <param name="value">One or more permission nodes required to run the command.</param>
+/// <example>
+/// <code>
+/// @PCPerm({"myplugin.fly", "myplugin.admin"})
+/// </code>
+/// </example>
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface PCPerm {
