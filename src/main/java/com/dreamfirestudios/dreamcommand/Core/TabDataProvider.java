@@ -23,9 +23,55 @@
  */
 package com.dreamfirestudios.dreamcommand.Core;
 
-import java.util.*;
+import java.util.List;
+import java.util.UUID;
 
+/**
+ * /// <summary>
+ * Abstraction used by the command router to pull dynamic tab-completion data
+ * from server-wide or player-scoped sources.
+ * /// </summary>
+ * /// <remarks>
+ * Implement and supply an instance to {@code CommandRouter} when you need custom,
+ * runtime-populated completions (e.g., list of regions, teams, warp names).
+ * /// </remarks>
+ * /// <example>
+ * <code>
+ * public final class MyProvider implements TabDataProvider {
+ *     &#64;Override
+ *     public List&lt;String&gt; serverData(String key) {
+ *         return switch (key) {
+ *             case "regions" -&gt; regionService.getAllNames();
+ *             default -&gt; List.of();
+ *         };
+ *     }
+ *     &#64;Override
+ *     public List&lt;String&gt; playerData(UUID uuid, String key) {
+ *         if ("homes".equals(key)) return homesService.listHomes(uuid);
+ *         return List.of();
+ *     }
+ * }
+ * </code>
+ * /// </example>
+ */
 public interface TabDataProvider {
+
+    /**
+     * /// <summary>
+     * Returns server-scoped suggestion data for a given logical key.
+     * /// </summary>
+     * /// <param name="key">A logical identifier indicating which dataset to return (e.g., "regions").</param>
+     * /// <returns>A list of suggestion strings (possibly empty, never {@code null}).</returns>
+     */
     List<String> serverData(String key);
-    List<String> playerData(java.util.UUID uuid, String key);
+
+    /**
+     * /// <summary>
+     * Returns player-scoped suggestion data for a given logical key.
+     * /// </summary>
+     * /// <param name="uuid">The player whose data should be queried.</param>
+     * /// <param name="key">A logical identifier indicating which dataset to return (e.g., "homes").</param>
+     * /// <returns>A list of suggestion strings (possibly empty, never {@code null}).</returns>
+     */
+    List<String> playerData(UUID uuid, String key);
 }

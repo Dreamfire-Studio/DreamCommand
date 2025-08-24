@@ -26,10 +26,39 @@ package com.dreamfirestudios.dreamcommand.Core;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
 
+/**
+ * /// <summary>
+ * Lightweight ambient data passed to {@code ArgumentResolver}s and mapping logic
+ * during command execution and tab completion.
+ * /// </summary>
+ * /// <remarks>
+ * Carries the owning {@link Plugin} and the current {@link CommandSender}. Extend as needed
+ * in the future if additional context is required (e.g., locale, command label).
+ * /// </remarks>
+ * /// <example>
+ * <code>
+ * ResolutionContext ctx = new ResolutionContext(plugin, sender);
+ * Integer value = integerResolver.resolve("42", ctx);
+ * </code>
+ * /// </example>
+ */
 public final class ResolutionContext {
+
+    /** /// <summary>The plugin owning the command execution.</summary> */
     public final Plugin plugin;
+
+    /** /// <summary>The sender who executed the command (console or player).</summary> */
     public final CommandSender sender;
-    public ResolutionContext(Plugin plugin, CommandSender sender){
-        this.plugin = plugin; this.sender = sender;
+
+    /**
+     * /// <summary>
+     * Creates a new resolution context.
+     * /// </summary>
+     * /// <param name="plugin">Owning plugin instance.</param>
+     * /// <param name="sender">Command sender for the current invocation.</param>
+     */
+    public ResolutionContext(Plugin plugin, CommandSender sender) {
+        this.plugin = plugin;
+        this.sender = sender;
     }
 }

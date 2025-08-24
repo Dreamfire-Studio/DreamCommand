@@ -23,10 +23,20 @@
  */
 package com.dreamfirestudios.dreamcommand.Annotations;
 
-
 import java.lang.annotation.*;
 
-
+/// <summary>
+/// Hides a specific tab entry from being displayed in tab completion.
+/// </summary>
+/// <remarks>
+/// Useful for filtering out specific suggestions dynamically.
+/// </remarks>
+/// <param name="value">The string value of the tab to hide.</param>
+/// <example>
+/// <code>
+/// @PCFunctionHideTab("secretSubcommand")
+/// </code>
+/// </example>
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface PCFunctionHideTab {

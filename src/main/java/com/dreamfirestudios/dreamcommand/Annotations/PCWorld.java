@@ -23,10 +23,20 @@
  */
 package com.dreamfirestudios.dreamcommand.Annotations;
 
-
 import java.lang.annotation.*;
 
-
+/// <summary>
+/// Restricts a command or method to specific worlds.
+/// </summary>
+/// <remarks>
+/// If applied, the command is only executable in the listed worlds.
+/// </remarks>
+/// <param name="value">One or more world names where the command is permitted.</param>
+/// <example>
+/// <code>
+/// @PCWorld({"world", "world_nether"})
+/// </code>
+/// </example>
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface PCWorld {

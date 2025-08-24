@@ -23,13 +23,27 @@
  */
 package com.dreamfirestudios.dreamcommand.Annotations;
 
-
 import java.lang.annotation.*;
 
-
+/// <summary>
+/// Defines an automatic tab completion entry for a command or method.
+/// </summary>
+/// <remarks>
+/// This annotation can be applied multiple times to the same element using <see cref="PCAutoTabs"/>.
+/// Used to register tab completion positions within the DreamCommand framework.
+/// </remarks>
+/// <example>
+/// <code>
+/// @PCAutoTab(pos = 0)
+/// public void myCommand(...) { }
+/// </code>
+/// </example>
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Repeatable(PCAutoTabs.class)
 public @interface PCAutoTab {
+    /// <summary>
+    /// The argument index (position) for which tab completion should be applied.
+    /// </summary>
     int pos();
 }

@@ -23,10 +23,14 @@
  */
 package com.dreamfirestudios.dreamcommand.Annotations;
 
-
 import java.lang.annotation.*;
 
-
+/// <summary>
+/// Marks that tab completions should be hidden for the annotated method.
+/// </summary>
+/// <remarks>
+/// Unlike <see cref="PCFunctionHideTab"/>, this hides all completions, not just a specific value.
+/// </remarks>
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface PCHideTab { }
