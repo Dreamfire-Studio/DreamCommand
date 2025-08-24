@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/DreamCommand.iml" filepath="$PROJECT_DIR$/DreamCommand.iml" />
+      <module fileurl="file://$PROJECT_DIR$/dreamcommand-1.21.8-r0.1.iml" filepath="$PROJECT_DIR$/dreamcommand-1.21.8-r0.1.iml" />
     </modules>
   </component>
 </project>

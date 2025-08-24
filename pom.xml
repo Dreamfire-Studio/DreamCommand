@@ -11,7 +11,7 @@
 
     <properties>
         <github.owner>Dreamfire-Studio</github.owner>
-        <github.server.id>github</github.server.id>
+        <github.server.id>github-dreamcommand</github.server.id>
         <github.repo>${project.name}</github.repo>
         <paper.api.version>1.21.8-R0.1-SNAPSHOT</paper.api.version>
         <maven.compiler.release>21</maven.compiler.release>
