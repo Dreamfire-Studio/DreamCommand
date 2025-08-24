@@ -35,29 +35,103 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
+/**
+ * /// <summary>
+ * Bukkit plugin entry point for DreamCommand. Automatically discovers and registers
+ * commands at startup using either legacy {@link BukkitCommand} subclasses or
+ * annotation-driven handlers wrapped by {@link CommandRouter}.
+ * /// </summary>
+ * /// <remarks>
+ * <ul>
+ *   <li><b>Legacy mode:</b> Any class that extends {@link BukkitCommand} is instantiated and registered directly.</li>
+ *   <li><b>Router mode:</b> Any plain class that declares at least one {@code @PCMethod} is wrapped by a {@link CommandRouter}.</li>
+ *   <li>Static fields on the handler class may configure the router:
+ *       <ul>
+ *         <li>{@code public static String   COMMAND_NAME}</li>
+ *         <li>{@code public static String[] COMMAND_ALIASES}</li>
+ *         <li>{@code public static boolean  COMMAND_DEBUG}</li>
+ *       </ul>
+ *       If {@code COMMAND_NAME} is absent, the simple class name (minus a trailing {@code "Commands"}) is used, lowercased.</li>
+ * </ul>
+ * Classes to register are obtained from {@link DreamfireJavaAPI#getAutoRegisterClasses(JavaPlugin)}.
+ * /// </remarks>
+ * /// <example>
+ * <code>
+ * // Example handler (router mode):
+ * public final class HomeCommands {
+ *     public static final String COMMAND_NAME = "home";
+ *     public static final String[] COMMAND_ALIASES = {"homes"};
+ *     public static final boolean COMMAND_DEBUG = true;
+ *
+ *     &#64;PCMethod({"set"})
+ *     public void set(org.bukkit.entity.Player player) { ... }
+ *
+ *     &#64;PCMethod({"tp"})
+ *     public void tp(org.bukkit.entity.Player player, String name) { ... }
+ * }
+ * </code>
+ * /// </example>
+ */
 public final class DreamCommand extends JavaPlugin {
+
+    /** /// <summary>Singleton reference to the loaded plugin instance.</summary> */
     public static DreamCommand INSTANCE;
 
-    @Override public void onEnable(){ INSTANCE = this; RegisterRaw(this); }
-
-    public static void RegisterRaw(JavaPlugin javaPlugin) {
-        try { Register(javaPlugin); } catch (Exception e) { throw new RuntimeException(e); }
+    /**
+     * /// <summary>
+     * Standard Bukkit enable hook. Stores {@link #INSTANCE} and triggers auto-registration.
+     * /// </summary>
+     */
+    @Override
+    public void onEnable() {
+        INSTANCE = this;
+        RegisterRaw(this);
     }
 
     /**
-     * Pulse auto-register:
-     *  - If class extends BukkitCommand (incl. your PlayerCommand/ServerCommand): instantiate and register directly.
-     *  - Else if class contains at least one @PCMethod: wrap with CommandRouter.
-     *    Name/aliases/debug are resolved from optional static fields:
-     *      public static String   COMMAND_NAME
-     *      public static String[] COMMAND_ALIASES
-     *      public static boolean  COMMAND_DEBUG
-     *    If COMMAND_NAME is absent, fallback = simple class name (strip trailing "Commands"), lowercase.
+     * /// <summary>
+     * Convenience wrapper that calls {@link #Register(JavaPlugin)} and wraps checked exceptions in {@link RuntimeException}.
+     * /// </summary>
+     * /// <param name="javaPlugin">The plugin providing classes to auto-register.</param>
+     */
+    public static void RegisterRaw(JavaPlugin javaPlugin) {
+        try {
+            Register(javaPlugin);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * /// <summary>
+     * Discovers and registers command classes from {@link DreamfireJavaAPI#getAutoRegisterClasses(JavaPlugin)}.
+     * </summary>
+     * /// <param name="javaPlugin">The plugin providing classes to auto-register.</param>
+     * /// <remarks>
+     * <b>Registration rules:</b>
+     * <ol>
+     *   <li>If a class extends {@link BukkitCommand}, it is instantiated via its no-arg constructor and registered directly.</li>
+     *   <li>If a class declares at least one method annotated with {@link PCMethod}, it is treated as a handler:
+     *       <ul>
+     *         <li>{@code COMMAND_NAME}: optional static field for the command name (lowercased).</li>
+     *         <li>{@code COMMAND_ALIASES}: optional static field supplying aliases.</li>
+     *         <li>{@code COMMAND_DEBUG}: optional static field to enable debug feedback.</li>
+     *       </ul>
+     *       The object is wrapped in a {@link CommandRouter} and registered.</li>
+     * </ol>
+     * /// </remarks>
+     * /// <example>
+     * <code>
+     * // Called during onEnable():
+     * DreamCommand.Register(this);
+     * </code>
+     * /// </example>
+     * /// <exception cref="Exception">If reflective construction or registration fails.</exception>
      */
     public static void Register(JavaPlugin javaPlugin) throws Exception {
         for (var autoRegisterClass : DreamfireJavaAPI.getAutoRegisterClasses(javaPlugin)) {
 
-            // Case 1: Legacy style — subclasses of BukkitCommand (your abstract PlayerCommand/ServerCommand)
+            // Case 1: Legacy style — subclasses of BukkitCommand
             if (BukkitCommand.class.isAssignableFrom(autoRegisterClass)) {
                 var bukkitCmd = (BukkitCommand) autoRegisterClass.getDeclaredConstructor().newInstance();
                 CommandMap map = (CommandMap) getField(Bukkit.getServer().getClass(), "commandMap").get(Bukkit.getServer());
@@ -65,7 +139,7 @@ public final class DreamCommand extends JavaPlugin {
                 continue;
             }
 
-            // Case 2: New router style — plain classes containing @PCMethod handlers
+            // Case 2: Router style — plain classes containing @PCMethod handlers
             boolean hasPCMethod = false;
             for (Method m : autoRegisterClass.getMethods()) {
                 if (m.isAnnotationPresent(PCMethod.class)) { hasPCMethod = true; break; }
@@ -111,25 +185,69 @@ public final class DreamCommand extends JavaPlugin {
         }
     }
 
-    // --- your original private helpers kept verbatim ---
+    // ------------------------------------------------------------------------------------
+    // Internal helpers
+    // ------------------------------------------------------------------------------------
 
+    /**
+     * /// <summary>
+     * Registers a {@link CommandRouter}-backed command under the given name and aliases.
+     * /// </summary>
+     * /// <param name="plugin">Owning plugin.</param>
+     * /// <param name="name">Primary command name (lowercased).</param>
+     * /// <param name="target">Handler instance with {@code @PCMethod} methods.</param>
+     * /// <param name="debug">Whether to enable debug messages for this command.</param>
+     * /// <param name="aliases">Optional aliases for the command.</param>
+     * /// <remarks>
+     * Uses Bukkit's internal {@code CommandMap} obtained reflectively.
+     * /// </remarks>
+     */
     private static void register(JavaPlugin plugin, String name, Object target, boolean debug, String... aliases) {
         try {
             CommandMap map = (CommandMap) getField(Bukkit.getServer().getClass(), "commandMap").get(Bukkit.getServer());
             BukkitCommand cmd = new CommandRouter(plugin, name, target, debug, aliases);
             map.register(plugin.getName(), cmd);
-        } catch (Exception e) { throw new RuntimeException(e); }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
+    /**
+     * /// <summary>
+     * Registers a {@link CommandRouter}-backed command with a supplied {@link TabDataProvider}.
+     * /// </summary>
+     * /// <param name="plugin">Owning plugin.</param>
+     * /// <param name="name">Primary command name (lowercased).</param>
+     * /// <param name="target">Handler instance with {@code @PCMethod} methods.</param>
+     * /// <param name="debug">Whether to enable debug messages for this command.</param>
+     * /// <param name="provider">Optional tab data provider for dynamic completions.</param>
+     * /// <param name="aliases">Optional aliases for the command.</param>
+     * /// <remarks>
+     * This overload is available for callers that manage their own {@link TabDataProvider}.
+     * /// </remarks>
+     */
     private static void register(JavaPlugin plugin, String name, Object target, boolean debug, TabDataProvider provider, String... aliases) {
         try {
             CommandMap map = (CommandMap) getField(Bukkit.getServer().getClass(), "commandMap").get(Bukkit.getServer());
             BukkitCommand cmd = new CommandRouter(plugin, name, target, debug, provider, aliases);
             map.register(plugin.getName(), cmd);
-        } catch (Exception e) { throw new RuntimeException(e); }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
+    /**
+     * /// <summary>
+     * Reflectively obtains a declared field and marks it accessible.
+     * /// </summary>
+     * /// <param name="c">Class declaring the field.</param>
+     * /// <param name="n">Field name.</param>
+     * /// <returns>The accessible {@link Field} instance.</returns>
+     * /// <exception cref="Exception">If the field is not present or cannot be made accessible.</exception>
+     */
     private static Field getField(Class<?> c, String n) throws Exception {
-        var f = c.getDeclaredField(n); f.setAccessible(true); return f;
+        var f = c.getDeclaredField(n);
+        f.setAccessible(true);
+        return f;
     }
 }
