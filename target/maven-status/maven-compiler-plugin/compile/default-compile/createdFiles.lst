@@ -5,10 +5,13 @@ com\dreamfirestudios\dreamcommand\Core\ArgumentRegistry$6.class
 com\dreamfirestudios\dreamcommand\Annotations\PCTabs.class
 com\dreamfirestudios\dreamcommand\Annotations\PCHideTab.class
 com\dreamfirestudios\dreamcommand\Core\ArgumentRegistry$1.class
+com\dreamfirestudios\dreamcommand\Annotations\PCRateLimit.class
 com\dreamfirestudios\dreamcommand\Core\CommandRouter$1.class
 com\dreamfirestudios\dreamcommand\Core\ArgumentRegistry$4.class
+com\dreamfirestudios\dreamcommand\Core\MethodBinding$1.class
 com\dreamfirestudios\dreamcommand\Core\ArgumentRegistry$2.class
 com\dreamfirestudios\dreamcommand\Core\ArgumentRegistry$7.class
+com\dreamfirestudios\dreamcommand\Enums\RateLimitScope.class
 com\dreamfirestudios\dreamcommand\Annotations\PCPerm.class
 com\dreamfirestudios\dreamcommand\Core\MethodBinding.class
 com\dreamfirestudios\dreamcommand\Annotations\PCOP.class

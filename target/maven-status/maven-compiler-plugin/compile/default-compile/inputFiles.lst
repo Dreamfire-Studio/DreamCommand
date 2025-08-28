@@ -6,6 +6,7 @@ E:\Coding Portfolio\Dreamfire Studios\DreamCore\DreamCommand\src\main\java\com\d
 E:\Coding Portfolio\Dreamfire Studios\DreamCore\DreamCommand\src\main\java\com\dreamfirestudios\dreamcommand\Annotations\PCMethodData.java
 E:\Coding Portfolio\Dreamfire Studios\DreamCore\DreamCommand\src\main\java\com\dreamfirestudios\dreamcommand\Annotations\PCOP.java
 E:\Coding Portfolio\Dreamfire Studios\DreamCore\DreamCommand\src\main\java\com\dreamfirestudios\dreamcommand\Annotations\PCPerm.java
+E:\Coding Portfolio\Dreamfire Studios\DreamCore\DreamCommand\src\main\java\com\dreamfirestudios\dreamcommand\Annotations\PCRateLimit.java
 E:\Coding Portfolio\Dreamfire Studios\DreamCore\DreamCommand\src\main\java\com\dreamfirestudios\dreamcommand\Annotations\PCTab.java
 E:\Coding Portfolio\Dreamfire Studios\DreamCore\DreamCommand\src\main\java\com\dreamfirestudios\dreamcommand\Annotations\PCTabs.java
 E:\Coding Portfolio\Dreamfire Studios\DreamCore\DreamCommand\src\main\java\com\dreamfirestudios\dreamcommand\Annotations\PCWorld.java
@@ -17,4 +18,5 @@ E:\Coding Portfolio\Dreamfire Studios\DreamCore\DreamCommand\src\main\java\com\d
 E:\Coding Portfolio\Dreamfire Studios\DreamCore\DreamCommand\src\main\java\com\dreamfirestudios\dreamcommand\Core\TabDataProvider.java
 E:\Coding Portfolio\Dreamfire Studios\DreamCore\DreamCommand\src\main\java\com\dreamfirestudios\dreamcommand\DreamCommand.java
 E:\Coding Portfolio\Dreamfire Studios\DreamCore\DreamCommand\src\main\java\com\dreamfirestudios\dreamcommand\Enums\CommandError.java
+E:\Coding Portfolio\Dreamfire Studios\DreamCore\DreamCommand\src\main\java\com\dreamfirestudios\dreamcommand\Enums\RateLimitScope.java
 E:\Coding Portfolio\Dreamfire Studios\DreamCore\DreamCommand\src\main\java\com\dreamfirestudios\dreamcommand\Enums\TabType.java
