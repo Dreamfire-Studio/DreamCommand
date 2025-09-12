@@ -78,5 +78,10 @@ public enum TabType {
      * Suggest known offline player names (case-insensitive contains match against the current prefix).
      * /// </summary>
      */
-    OfflinePlayerNames
+    OfflinePlayerNames,
+    Enum,
+    WorldNames,
+    WorldIDS,
+    PluginNames,
+    PermissionNodes
 }

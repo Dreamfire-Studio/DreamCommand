@@ -297,6 +297,52 @@ public final class CommandRouter extends BukkitCommand {
                             } catch (Exception ignored) { }
                         }
                     }
+
+                    case Enum -> {
+                        try {
+                            Class<?> clazz = Class.forName(tab.data());
+                            if (clazz.isEnum()) {
+                                Object[] constants = clazz.getEnumConstants();
+                                for (Object constant : constants) {
+                                    String name = constant.toString();
+                                    if (name.toLowerCase().contains(current.toLowerCase())) {
+                                        out.add(name);
+                                    }
+                                }
+                            }
+                        } catch (ClassNotFoundException e) {
+                            if (debug) sender.sendMessage("Enum class not found: " + tab.data());
+                        }
+                    }
+
+                    case WorldNames -> {
+                        Bukkit.getWorlds().forEach(world -> {
+                            String name = world.getName();
+                            if (name.toLowerCase().contains(current.toLowerCase())) out.add(name);
+                        });
+                    }
+
+                    case WorldIDS -> {
+                        Bukkit.getWorlds().forEach(world -> {
+                            String name = world.getUID().toString();
+                            if (name.toLowerCase().contains(current.toLowerCase())) out.add(name);
+                        });
+                    }
+
+                    case PluginNames -> {
+                        Arrays.stream(Bukkit.getPluginManager().getPlugins())
+                                .forEach(pl -> {
+                                    String name = pl.getName();
+                                    if (name.toLowerCase().contains(current.toLowerCase())) out.add(name);
+                                });
+                    }
+
+                    case PermissionNodes -> {
+                        Bukkit.getPluginManager().getPermissions().forEach(perm -> {
+                            String name = perm.getName();
+                            if (name.toLowerCase().contains(current.toLowerCase())) out.add(name);
+                        });
+                    }
                 }
             }
         }
